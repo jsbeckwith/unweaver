@@ -1,5 +1,6 @@
 import copy
 import os
+import ast
 
 import entwiner
 from shapely.geometry import LineString, Point, mapping, shape
@@ -101,7 +102,21 @@ def reverse_edge(edge, invert=None, flip=None):
     if flip is not None:
         for key in flip:
             if key in edge:
-                edge[key] = type(edge[key])(not edge[key])
+                if key == "lin_ref_list":
+                    if edge[key] == "NO_LANDMARKS":
+                        pass
+                    else:
+                        lmrk_lst = ast.literal_eval(edge[key])
+                        print(lmrk_lst)
+                        rev_lmrk_list = []
+                        for lmrk in reversed(lmrk_lst):
+                            lmrk_rev = (lmrk[0], (1 - lmrk[1]))
+                            rev_lmrk_list.append(lmrk_rev)
+                        print(rev_lmrk_list)
+                        edge[key] = str(rev_lmrk_list)
+                        print(edge[key])
+                else:
+                    edge[key] = type(edge[key])(not edge[key])
 
 
 def is_start_node(distance, linestring):
@@ -171,9 +186,9 @@ def create_temporary_node(edge, point, is_destination=False, invert=False, flip=
 
     # Origin node should have outgoing edges, destination incoming.
     if is_destination:
-        reverse_edge(d2, invert=invert, flip=flip)
+        reverse_edge(d2, invert=invert, flip=["lin_ref_list"])
     else:
-        reverse_edge(d1, invert=invert, flip=flip)
+        reverse_edge(d1, invert=invert, flip=["lin_ref_list"])
 
     if is_destination:
         edge1 = (u, -1, d1)
